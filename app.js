@@ -497,29 +497,57 @@ window.addEventListener('load', () => {
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    const btn = form.querySelector('button[type="submit"]');
+    const btnText = btn.querySelector('span');
+    const status = document.getElementById('contactFormStatus');
+    const originalText = btnText.textContent;
+
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const btn = form.querySelector('button[type="submit"]');
-        const originalText = btn.querySelector('span').textContent;
-
-        // Simulate submission
-        btn.querySelector('span').textContent = 'Sending...';
+        btnText.textContent = 'Sending...';
         btn.disabled = true;
         btn.style.opacity = '0.7';
+        status.textContent = 'Sending your message...';
+        status.className = 'form-status';
 
-        setTimeout(() => {
-            btn.querySelector('span').textContent = '✓ Message Sent!';
+        try {
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData);
+            delete payload.redirect;
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || 'Unable to send your message.');
+            }
+
+            btnText.textContent = 'Message Sent!';
             btn.style.background = 'linear-gradient(135deg, #4ECDC4, #44CF6C)';
-
+            status.textContent = 'Thank you! Your message has been sent successfully.';
+            status.className = 'form-status form-status-success';
+            form.reset();
+        } catch (error) {
+            console.error('Contact form submission failed:', error);
+            btnText.textContent = 'Try Again';
+            status.textContent = error.message || 'Something went wrong. Please try again or email us directly.';
+            status.className = 'form-status form-status-error';
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
             setTimeout(() => {
-                btn.querySelector('span').textContent = originalText;
-                btn.disabled = false;
-                btn.style.opacity = '1';
+                btnText.textContent = originalText;
                 btn.style.background = '';
-                form.reset();
             }, 3000);
-        }, 1500);
+        }
     });
 })();
 

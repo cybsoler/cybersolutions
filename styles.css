@@ -1946,6 +1946,25 @@ a.portfolio-card:hover .portfolio-info::after {
     gap: 20px;
 }
 
+.form-status {
+    margin-top: -8px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.form-status:empty {
+    display: none;
+}
+
+.form-status-success {
+    color: #44cf6c;
+}
+
+.form-status-error {
+    color: #ff6b6b;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
