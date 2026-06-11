@@ -1,5 +1,5 @@
 /* ============================================
-   CyberSolutions Hub — Main JavaScript
+   CyberSoul — Main JavaScript
    3D Scene, Animations, Interactions
    ============================================ */
 
@@ -826,5 +826,5 @@ setTimeout(hidePreloader, 3500);
     }, 2200); // After preloader
 })();
 
-console.log('%c🚀 CyberSolutions Hub', 'font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #6C63FF, #00D4FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent;');
-console.log('%cBuilt with ❤️ by CyberSolutions Hub — Bhiwani & Jaipur', 'font-size: 12px; color: #888;');
+console.log('%c🚀 CyberSoul', 'font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #6C63FF, #00D4FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent;');
+console.log('%cBuilt with ❤️ by CyberSoul — Bhiwani & Jaipur', 'font-size: 12px; color: #888;');
