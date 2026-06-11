@@ -6,11 +6,17 @@
 // =============================================
 // 1. PRELOADER
 // =============================================
+const hidePreloader = () => {
+    const preloader = document.getElementById('preloader');
+    if (preloader) preloader.classList.add('loaded');
+};
+
 window.addEventListener('load', () => {
-    setTimeout(() => {
-        document.getElementById('preloader').classList.add('loaded');
-    }, 1800);
+    setTimeout(hidePreloader, window.innerWidth <= 768 ? 700 : 1400);
 });
+
+// Do not leave mobile visitors behind a loader if a third-party asset stalls.
+setTimeout(hidePreloader, 3500);
 
 // =============================================
 // 2. THREE.JS — 3D PARTICLE BACKGROUND
@@ -19,17 +25,26 @@ window.addEventListener('load', () => {
     const canvas = document.getElementById('bg-canvas');
     if (!canvas || typeof THREE === 'undefined') return;
 
+    const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    if (prefersReducedMotion) {
+        canvas.style.display = 'none';
+        return;
+    }
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !isSmallScreen });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmallScreen ? 1.25 : 2));
 
     camera.position.z = 30;
 
     // --- Floating Particle Field ---
-    const particleCount = 1500;
+    const particleCount = isSmallScreen ? 400 : 1500;
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     const sizes = new Float32Array(particleCount);
@@ -134,8 +149,10 @@ window.addEventListener('load', () => {
         opacity: 0.04,
     });
 
+    const maxLineCount = isSmallScreen ? 0 : 300;
+    const lineSampleCount = isSmallScreen ? 0 : 200;
     const linesGeometry = new THREE.BufferGeometry();
-    const linePositions = new Float32Array(300 * 6); // 300 lines max
+    const linePositions = new Float32Array(maxLineCount * 6);
     linesGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
     const lines = new THREE.LineSegments(linesGeometry, linesMaterial);
     scene.add(lines);
@@ -144,10 +161,12 @@ window.addEventListener('load', () => {
     let mouseX = 0, mouseY = 0;
     let targetMouseX = 0, targetMouseY = 0;
 
-    document.addEventListener('mousemove', (e) => {
-        targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-        targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-    });
+    if (hasFinePointer) {
+        document.addEventListener('mousemove', (e) => {
+            targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+    }
 
     // Scroll tracking
     let scrollY = 0;
@@ -167,6 +186,8 @@ window.addEventListener('load', () => {
 
     function animate() {
         requestAnimationFrame(animate);
+
+        if (document.hidden) return;
 
         const elapsed = clock.getElapsedTime();
 
@@ -208,8 +229,8 @@ window.addEventListener('load', () => {
         const linePos = linesGeometry.attributes.position.array;
         const maxDist = 8;
 
-        for (let i = 0; i < Math.min(particleCount, 200) && lineIndex < 300; i++) {
-            for (let j = i + 1; j < Math.min(particleCount, 200) && lineIndex < 300; j++) {
+        for (let i = 0; i < lineSampleCount && lineIndex < maxLineCount; i++) {
+            for (let j = i + 1; j < lineSampleCount && lineIndex < maxLineCount; j++) {
                 const dx = pos[i * 3] - pos[j * 3];
                 const dy = pos[i * 3 + 1] - pos[j * 3 + 1];
                 const dz = pos[i * 3 + 2] - pos[j * 3 + 2];
@@ -227,7 +248,7 @@ window.addEventListener('load', () => {
             }
         }
         // Clear remaining
-        for (let i = lineIndex; i < 300; i++) {
+        for (let i = lineIndex; i < maxLineCount; i++) {
             linePos[i * 6] = 0;
             linePos[i * 6 + 1] = 0;
             linePos[i * 6 + 2] = 0;
@@ -254,7 +275,8 @@ window.addEventListener('load', () => {
     const dot = document.getElementById('cursor-dot');
     const ring = document.getElementById('cursor-ring');
 
-    if (!dot || !ring || window.innerWidth < 768) return;
+    const supportsCustomCursor = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!dot || !ring || !supportsCustomCursor) return;
 
     let cursorX = 0, cursorY = 0;
     let ringX = 0, ringY = 0;
@@ -307,6 +329,24 @@ window.addEventListener('load', () => {
     const mobileLinks = document.querySelectorAll('.mobile-link');
     const navLinks = document.querySelectorAll('.nav-link');
 
+    const closeMobileMenu = () => {
+        toggle.classList.remove('active');
+        mobileMenu.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open navigation');
+        mobileMenu.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    };
+
+    const openMobileMenu = () => {
+        toggle.classList.add('active');
+        mobileMenu.classList.add('open');
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Close navigation');
+        mobileMenu.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    };
+
     // Scroll effect
     let lastScroll = 0;
     window.addEventListener('scroll', () => {
@@ -322,19 +362,34 @@ window.addEventListener('load', () => {
     // Mobile toggle
     if (toggle) {
         toggle.addEventListener('click', () => {
-            toggle.classList.toggle('active');
-            mobileMenu.classList.toggle('open');
-            document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+            if (mobileMenu.classList.contains('open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
         });
     }
 
     // Close mobile on link click
     mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            toggle.classList.remove('active');
-            mobileMenu.classList.remove('open');
-            document.body.style.overflow = '';
-        });
+        link.addEventListener('click', closeMobileMenu);
+    });
+
+    mobileMenu.addEventListener('click', (event) => {
+        if (event.target === mobileMenu) closeMobileMenu();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && mobileMenu.classList.contains('open')) {
+            closeMobileMenu();
+            toggle.focus();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024 && mobileMenu.classList.contains('open')) {
+            closeMobileMenu();
+        }
     });
 
     // Active section highlighting
@@ -573,7 +628,7 @@ window.addEventListener('load', () => {
 // 10. TILT EFFECT ON SERVICE CARDS
 // =============================================
 (function initTiltEffect() {
-    if (window.innerWidth < 768) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
     const cards = document.querySelectorAll('.service-card, .portfolio-card');
 
@@ -601,7 +656,7 @@ window.addEventListener('load', () => {
 // 11. PARALLAX EFFECT ON SECTIONS
 // =============================================
 (function initParallax() {
-    if (window.innerWidth < 768) return;
+    if (window.innerWidth <= 1024 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     window.addEventListener('scroll', () => {
         const scrolled = window.scrollY;
@@ -621,7 +676,7 @@ window.addEventListener('load', () => {
 // 12. MAGNETIC BUTTON EFFECT
 // =============================================
 (function initMagneticButtons() {
-    if (window.innerWidth < 768) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
     const btns = document.querySelectorAll('.btn-primary, .nav-cta');
 
@@ -644,6 +699,8 @@ window.addEventListener('load', () => {
 // 13. TEXT SCRAMBLE EFFECT (Section Tags)
 // =============================================
 (function initTextScramble() {
+    if (window.innerWidth <= 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     class TextScramble {
         constructor(el) {
             this.el = el;
@@ -751,6 +808,8 @@ window.addEventListener('load', () => {
 (function initTypingEffect() {
     const badge = document.querySelector('.hero-badge span:last-child');
     if (!badge) return;
+
+    if (window.innerWidth <= 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const originalText = badge.textContent;
     badge.textContent = '';

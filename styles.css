@@ -69,6 +69,7 @@ html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
     font-size: 16px;
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -80,6 +81,7 @@ body {
     cursor: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-width: 320px;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -367,9 +369,15 @@ button:hover ~ #cursor-ring {
 .nav-toggle {
     display: none;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 5px;
     z-index: 100;
-    padding: 4px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border-radius: 50%;
+    touch-action: manipulation;
 }
 
 .nav-toggle span {
@@ -399,6 +407,8 @@ button:hover ~ #cursor-ring {
     left: 0;
     width: 100%;
     height: 100vh;
+    height: 100dvh;
+    min-height: 100svh;
     background: rgba(10, 10, 15, 0.95);
     backdrop-filter: blur(var(--blur-xl));
     -webkit-backdrop-filter: blur(var(--blur-xl));
@@ -409,6 +419,9 @@ button:hover ~ #cursor-ring {
     opacity: 0;
     visibility: hidden;
     transition: all 0.4s var(--ease-out-expo);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: calc(88px + env(safe-area-inset-top)) 24px calc(32px + env(safe-area-inset-bottom));
 }
 
 .mobile-menu.open {
@@ -421,6 +434,7 @@ button:hover ~ #cursor-ring {
     flex-direction: column;
     align-items: center;
     gap: 28px;
+    width: 100%;
 }
 
 .mobile-link {
@@ -431,6 +445,11 @@ button:hover ~ #cursor-ring {
     transition: color 0.3s, transform 0.3s;
     transform: translateY(20px);
     opacity: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
 }
 
 .mobile-menu.open .mobile-link {
@@ -2152,6 +2171,7 @@ a.portfolio-card:hover .portfolio-info::after {
     .about-card-main { grid-column: 1 / -1; flex-direction: column; text-align: center; }
 
     .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .reviews-grid { grid-template-columns: repeat(2, 1fr); }
 
     .portfolio-grid { grid-template-columns: 1fr; }
     .portfolio-card-large { grid-column: span 1; }
@@ -2171,32 +2191,97 @@ a.portfolio-card:hover .portfolio-info::after {
     body { cursor: auto; }
     #cursor-dot, #cursor-ring { display: none; }
 
+    .nav-container {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+
+    .logo-text { font-size: 1.1rem; }
+    .logo-icon { width: 32px; height: 32px; }
+
+    .section-header { margin-bottom: 40px; }
+    .section-subtitle { font-size: 1rem; }
+
+    .hero-section {
+        min-height: auto;
+        padding: calc(104px + env(safe-area-inset-top)) 20px 72px;
+    }
+
+    .hero-badge {
+        max-width: 100%;
+        padding: 8px 14px;
+        margin-bottom: 24px;
+        font-size: 0.78rem;
+        line-height: 1.4;
+    }
+
     .hero-title {
         font-size: clamp(2rem, 8vw, 3.5rem);
+        letter-spacing: -1px;
+        overflow-wrap: anywhere;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+        margin-bottom: 32px;
     }
 
     .hero-actions {
         flex-direction: column;
         gap: 12px;
+        margin-bottom: 48px;
+    }
+
+    .hero-actions .btn {
+        width: min(100%, 320px);
+        justify-content: center;
     }
 
     .hero-stats {
-        flex-direction: column;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
     }
 
-    .stat-divider {
-        width: 48px;
-        height: 1px;
-    }
+    .stat-divider { display: none; }
+    .stat-number { font-size: 2rem; }
+    .stat-suffix { font-size: 1.2rem; }
+    .stat-label { font-size: 0.72rem; line-height: 1.35; }
+    .hero-scroll-indicator { display: none; }
 
     .about-grid { grid-template-columns: 1fr; }
 
     .services-grid { grid-template-columns: 1fr; }
 
+    .reviews-grid { grid-template-columns: 1fr; }
+
     .team-grid { grid-template-columns: 1fr; }
 
     .form-row { grid-template-columns: 1fr; }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px;
+    }
+
+    .overall-rating-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 28px;
+        padding: 32px 24px;
+    }
+
+    .overall-rating-divider {
+        width: 100%;
+        height: 1px;
+    }
+
+    .overall-rating-summary {
+        min-width: 0;
+        flex-direction: row;
+        justify-content: space-evenly;
+    }
 
     .footer-grid { grid-template-columns: 1fr; }
 
@@ -2210,20 +2295,83 @@ a.portfolio-card:hover .portfolio-info::after {
         flex-direction: column;
     }
 
+    .cta-actions .btn {
+        width: min(100%, 320px);
+        justify-content: center;
+    }
+
     .testimonial-card {
         padding: 28px;
     }
 
-    .process-step { gap: 20px; }
+    .process-step { gap: 16px; }
+    .process-line { left: 20px; }
+    .process-dot { width: 42px; height: 42px; }
+
+    .portfolio-image-real,
+    .portfolio-card-large .portfolio-image-real {
+        height: 260px;
+    }
+
+    .portfolio-tags { flex-wrap: wrap; }
+
+    .contact-info-card { padding: 20px; }
+    .contact-info-card p,
+    .social-link { overflow-wrap: anywhere; }
+
+    .review-card,
+    .team-card { padding: 28px 24px; }
 }
 
 @media (max-width: 480px) {
-    .hero-section { padding: 100px 16px 60px; }
-    .container { padding: 0 16px; }
+    :root { --section-padding: 64px 0; }
+
+    .hero-section {
+        padding: calc(96px + env(safe-area-inset-top)) 16px 56px;
+    }
+
+    .container {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
 
     .service-card { padding: 28px 20px; }
     .portfolio-image { height: 200px; }
+    .portfolio-image-real,
+    .portfolio-card-large .portfolio-image-real { height: 220px; }
+    .portfolio-info { padding: 20px; }
     .cta-card { padding: 48px 20px; }
+    .overall-rating-inner { padding: 28px 18px; }
+    .rating-bar-row { gap: 8px; }
+    .mobile-link { font-size: 1.7rem; }
+    .mobile-menu-content { gap: 18px; }
+    .contact-icon { width: 40px; height: 40px; }
+}
+
+@media (hover: none), (pointer: coarse) {
+    body { cursor: auto; }
+    #cursor-dot, #cursor-ring { display: none; }
+
+    .service-card:hover,
+    .portfolio-card:hover,
+    .review-card:hover,
+    .team-card:hover,
+    .contact-info-card:hover {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* === Particle effect for floating elements === */
